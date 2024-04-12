@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Currency Rate</h1>
+
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{{ form.media }}
+
+<div class="row justify-content-center">
+    <div class="col-4">
+        <div class="container">
+            <div class="tab-content s2bs5-example" id="multiple-select-clear-content">
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <input type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="chart-container" style="position: relative; height:50vh; width:100vw">
+            <canvas id="chart" width="100vw" height="50vh"></canvas>
+            <script>
+                var endpoint = '/api';
+                data = {{currency_changes|safe}}
+                if(data.length > 0) {
+                    drawLineGraph(data, 'chart');
+                }
+
+                function arrayToData(array) {
+                    var i = 0,
+                        obj = null,
+                        data = [];
+
+                    for (i = 0; i < array.length; i++) {
+                        obj = {};
+
+                        obj["label"] = array[i][0]
+                        obj["data"] = array[i][2]
+
+                        data.push(obj);
+                    }
+                    return data;
+                }
+
+                function drawLineGraph(data, id) {
+                  var ctx = document.getElementById(id).getContext('2d');
+                  const autocolors = window['chartjs-plugin-autocolors'];
+                  var chart = new Chart(ctx, {
+                    plugins: [
+                      autocolors
+                    ],
+                    // The type of chart we want to create
+                    type: 'line',
+
+                    // The data for our dataset
+                    data: {
+                      labels: data[0][1],
+                      datasets: arrayToData(data)
+                    },
+
+                    // Configuration options go here
+                    options: {
+                      plugins: {
+                        autocolors: {
+                          mode: 'dataset'
+                        }
+                      }
+                    }
+
+
+                  });
+                }
+            </script>
+        </div>
+    </div>
+</div>
+{% endblock content %}
